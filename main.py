@@ -1,27 +1,23 @@
-import time
+#main function that initialize the game and depending on the grid’s state, will stop when there are no more living cells
+def main(height,width,lifesList):
+    #initialization of the game with grid size and living cells
+    grid = init(height,width,lifesList)
+    #calculation of a grid corresponding to the number of neighbors for each cell
+    neighborsGrid = createNeighborsGrid(grid)
+    #as long as there are still living cells we play a turn
+    while isLivingCells(grid):
+        neighborsGrid =turn(grid,neighborsGrid)
 
-def main():
-    #create(4,4,[[1,1],[1,2],[2,1],[2,2]]) block imutable
-    # create(5,6,[[1,2],[1,3],[3,2],[3,3],[2,1],[2,4]]) beehive imutable
-    # create(5,5,[[1,2],[3,2],[2,1],[2,3],[1,1]]) boat imutable
-    # create(5,5,[[1,2],[3,2],[2,1],[2,3]]) tub imutable
-    #create(5,5,[[2,1],[2,2],[2,3]]) blinker oscilator
-
-    grid = init(1,12,[[0,0]])
-    neighboursGrid = createNeighborsGrid(grid)
-    while checkSurvivant(grid):
-        turn(grid,neighboursGrid)
-
-
-
-def checkSurvivant(grid): #return true if ther is at least one live cellule
+#return True if there is at least one live cell
+def isLivingCells(grid):
     bool = False
     for i in range(len(grid)):
         for j in range(len(grid[i])):
             if (grid[i][j] == 1):
                 bool=True
 
-    if (bool==False): #last print with only zeros
+    # last print with only zeros
+    if (bool==False):
         result = ""
         for i in range(len(grid)):
             for j in range(len(grid[i])):
@@ -30,9 +26,11 @@ def checkSurvivant(grid): #return true if ther is at least one live cellule
         print(result)
     return bool
 
-def init(height,width,lifesList): #create a binary grid of size (height * width) with zeros for dead cellules and one for lives cellules
+#create a binary grid of size (height * width) with zero for dead cell and one for live cell
+def init(height,width,livesList):
 
-    def initEmptyGrid(height, width):  # create a grid of size height * width with only zeros
+    # create a grid of size height * width with only zeros
+    def initEmptyGrid(height, width):
         grid = []
         for i in range(height):
             line = []
@@ -41,104 +39,133 @@ def init(height,width,lifesList): #create a binary grid of size (height * width)
             grid.append(line)
         return grid
 
-    def initLifesCellules(grid, lifesList):  # add one for all lifes cellules received from lifesList
-        for coordinate in lifesList:
+    # add one for all lives cells received from livesList
+    def initLifesCellules(grid, livesList):
+        for coordinate in livesList:
             x = coordinate[0]
             y = coordinate[1]
             grid[x][y] = 1
         return grid
 
     zerosGrid = initEmptyGrid(height, width)
-    return initLifesCellules(zerosGrid,lifesList)
+    return initLifesCellules(zerosGrid,livesList)
 
-def createNeighborsGrid(grid): #receive a grid and return his neighboor grid
+#receive a grid and return his neighbors' grid
+def createNeighborsGrid(grid):
 
-    def fromGridToLifesList(grid):  # return a list of lives cellules in a specific grid
-        lifesList = []
+    # return a list of lives cells in a specific grid
+    def fromGridToLivesList(grid):
+        livesList = []
         for i in range(len(grid)):
             for j in range(len(grid[i])):
                 if (grid[i][j] == 1):
-                    lifesList.append([i, j]) #add the pair of coordinate
-        return lifesList
+                    livesList.append([i, j]) #add the pair of coordinate [i, j]
+        return livesList
 
-    def initEmptyNeighbourGrid(grid):  # return a zero Neighboor Grid in the same size of grid
-        neighbourGrid = []
+    # return a zero neighbors' grid in the same size of grid
+    def initEmptyNeighborsGrid(grid):
+        neighborsGrid = []
         for i in range(len(grid)):
             line = []
             for j in range(len(grid[i])):
                 line.append(0) #add only zeros on a specific line
-            neighbourGrid.append(line) #add all zeros lines
-        return neighbourGrid
+            neighborsGrid.append(line) #add all zeros lines
+        return neighborsGrid
 
-    def addNeighboors(neighbourGrid,lifesList):  # receive an empty neighboor grid and return the specific number of neighboor for each cellule
-        for coordinate in lifesList:
+    # receive an empty neighbors' grid and return the specific number of neighbor for each cell
+    def addNeighbors(neighborsGrid, livesList):
+        for coordinate in livesList:
             x = coordinate[0]
             y = coordinate[1]
-            if (x == 0):  # ligne du haut
-                if (len(neighbourGrid) == 1 or len(neighbourGrid[0])==1): #forms [[x][x][x][x][x][x][x]] or [[x,x,x,x,x,x,x,x,x,x,x,x,x]]
-                    break
-                elif (y == 0):  # coin gauche
-                    neighbourGrid[x][y + 1] += 1
-                    neighbourGrid[x + 1][y] += 1
-                    neighbourGrid[x + 1][y + 1] += 1
-                elif (y == len(grid[0])):  # coin droit
-                    neighbourGrid[x][y - 1] += 1
-                    neighbourGrid[x + 1][y] += 1
-                    neighbourGrid[x + 1][y - 1] += 1
-                else:  # barre du haut sauf coins
-                    neighbourGrid[x][y - 1] += 1  # gauche
-                    neighbourGrid[x][y + 1] += 1  # droite
-                    neighbourGrid[x + 1][y - 1] += 1  # en bas gauche
-                    neighbourGrid[x + 1][y] += 1  # en bas
-                    neighbourGrid[x + 1][y + 1] += 1  # en bas droite
 
-            elif (x == len(grid) - 1):  # ligne du bas
-                if (y == 0):  # coin gauche
-                    neighbourGrid[x - 1][y] += 1  # au dessus
-                    neighbourGrid[x][y + 1] += 1  # droite
-                    neighbourGrid[x - 1][y + 1] += 1  # en haut a droite
-                elif (y == len(grid[0])):  # coin droit
-                    neighbourGrid[x - 1][y] += 1  # au dessus
-                    neighbourGrid[x][y - 1] += 1  # gauche
-                    neighbourGrid[x - 1][y - 1] += 1  # en haut a gauche
-                else:  # barre du haut sauf coins
-                    neighbourGrid[x][y - 1] += 1  # gauche
-                    neighbourGrid[x][y + 1] += 1  # droite
-                    neighbourGrid[x - 1][y - 1] += 1  # en haut gauche
-                    neighbourGrid[x - 1][y] += 1  # en haut
-                    neighbourGrid[x - 1][y + 1] += 1  # en haut droite
+            #we are passing on all lives cells to add it on his neighbors' cells, according to his position in the grid
+            if ((len(neighborsGrid) == 1) & (len(neighborsGrid[0]) == 1)): # if the grid is on the forms [[x]]
+                break
 
-            elif (y == 0):  # colomne de gauche
-                neighbourGrid[x - 1][y] += 1  # haut
-                neighbourGrid[x + 1][y] += 1  # bas
-                neighbourGrid[x][y + 1] += 1  # droite
-                neighbourGrid[x - 1][y + 1] += 1  # haut droite
-                neighbourGrid[x + 1][y + 1] += 1  # bas droite
+            elif (len(neighborsGrid) == 1):  # if the grid is on the forms [[x,x,x,x,x,x,x,x,x,x]]
+                if ((y == 0)):  # left corner
+                    neighborsGrid[x][y + 1] += 1  # right cell
+                elif (y == len(grid[0])):  # right corner
+                    neighborsGrid[x][y - 1] += 1  # left cell
+                else:  # between the two corners
+                    neighborsGrid[x][y + 1] += 1  # right cell
+                    neighborsGrid[x][y - 1] += 1  # left cell
 
-            elif (y == 0):  # colomne de droite
-                neighbourGrid[x - 1][y] += 1  # haut
-                neighbourGrid[x + 1][y] += 1  # bas
-                neighbourGrid[x][y - 1] += 1  # gauche
-                neighbourGrid[x - 1][y - 1] += 1  # haut gauche
-                neighbourGrid[x + 1][y - 1] += 1  # bas gauche
+            elif (len(neighborsGrid[0]) == 1):  # if the grid is on the forms [[x][x][x][x][x][x][x]]
+                if ((x == 0)):  # top corner
+                    neighborsGrid[x + 1][y] += 1 # bottom cell
+                elif (x == len(grid[0])):  # bottom corner
+                    neighborsGrid[x - 1][y] += 1 # up cell
+                else:  # between the two corners
+                    neighborsGrid[x + 1][y] += 1 # bottom cell
+                    neighborsGrid[x - 1][y] += 1 # up cell
 
-            else:  # centre de la matrix
-                neighbourGrid[x - 1][y] += 1  # haut
-                neighbourGrid[x + 1][y] += 1  # bas
-                neighbourGrid[x][y - 1] += 1  # gauche
-                neighbourGrid[x][y + 1] += 1  # droite
-                neighbourGrid[x - 1][y - 1] += 1  # haut gauche
-                neighbourGrid[x - 1][y + 1] += 1  # haut droite
-                neighbourGrid[x + 1][y - 1] += 1  # bas gauche
-                neighbourGrid[x + 1][y + 1] += 1  # bas droite
+            elif (x == 0):  # grid top row
+                if (y == 0):  # top left corner
+                    neighborsGrid[x][y + 1] += 1 # right cell
+                    neighborsGrid[x + 1][y] += 1 # bottom cell
+                    neighborsGrid[x + 1][y + 1] += 1# bottom right cell
+                elif (y == len(grid[0])):  # top right corner
+                    neighborsGrid[x][y - 1] += 1 # left cell
+                    neighborsGrid[x + 1][y] += 1 # bottom cell
+                    neighborsGrid[x + 1][y - 1] += 1 # bottom left cell
+                else:  # between the top two corners
+                    neighborsGrid[x][y - 1] += 1  # left cell
+                    neighborsGrid[x][y + 1] += 1  # right cell
+                    neighborsGrid[x + 1][y - 1] += 1  # bottom left cell
+                    neighborsGrid[x + 1][y] += 1  # bottom cell
+                    neighborsGrid[x + 1][y + 1] += 1  # bottom right cell
 
-        return neighbourGrid
+            elif (x == len(grid) - 1):  # grid bottom row
+                if (y == 0):  # bottom left corner
+                    neighborsGrid[x - 1][y] += 1  # up cell
+                    neighborsGrid[x][y + 1] += 1  # right cell
+                    neighborsGrid[x - 1][y + 1] += 1  # up right cell
+                elif (y == len(grid[0])):  # bottom right corner
+                    neighborsGrid[x - 1][y] += 1  # up cell
+                    neighborsGrid[x][y - 1] += 1  # left cell
+                    neighborsGrid[x - 1][y - 1] += 1  # up left cell
+                else:  # between the bottom two corners
+                    neighborsGrid[x][y - 1] += 1  # left cell
+                    neighborsGrid[x][y + 1] += 1  # right cell
+                    neighborsGrid[x - 1][y - 1] += 1  # up left cell
+                    neighborsGrid[x - 1][y] += 1  # up cell
+                    neighborsGrid[x - 1][y + 1] += 1  # up right cell
 
-    lifesList = fromGridToLifesList(grid)
-    emptyNeighboorGrid = initEmptyNeighbourGrid(grid)
-    return addNeighboors(emptyNeighboorGrid,lifesList)
+            elif (y == 0):  # grid left column
+                neighborsGrid[x - 1][y] += 1  # up cell
+                neighborsGrid[x + 1][y] += 1  # bottom cell
+                neighborsGrid[x][y + 1] += 1  # right cell
+                neighborsGrid[x - 1][y + 1] += 1  # up right cell
+                neighborsGrid[x + 1][y + 1] += 1  # bottom right cell
 
-def turn(grid,neighboursGrid):
+            elif (y == 0):  # grid right column
+                neighborsGrid[x - 1][y] += 1  # up cell
+                neighborsGrid[x + 1][y] += 1  # bottom cell
+                neighborsGrid[x][y - 1] += 1  # left cell
+                neighborsGrid[x - 1][y - 1] += 1  # up left cell
+                neighborsGrid[x + 1][y - 1] += 1  # bottom left cell
+
+            else:  # center of the grid
+                neighborsGrid[x - 1][y] += 1  # up cell
+                neighborsGrid[x + 1][y] += 1  # bottom cell
+                neighborsGrid[x][y - 1] += 1  # left cell
+                neighborsGrid[x][y + 1] += 1  # right cell
+                neighborsGrid[x - 1][y - 1] += 1  # up left cell
+                neighborsGrid[x - 1][y + 1] += 1  # up right cell
+                neighborsGrid[x + 1][y - 1] += 1  # bottom left cell
+                neighborsGrid[x + 1][y + 1] += 1  # bottom right cell
+
+        return neighborsGrid
+
+    livesList = fromGridToLivesList(grid)
+    emptyNeighborsGrid = initEmptyNeighborsGrid(grid)
+    return addNeighbors(emptyNeighborsGrid, livesList)
+
+#first print the current grid, then apply the game's rules and refresh the Neighbors' grid
+def turn(grid,neighborsGrid):
+
+    #print the grid like a matrix
     def printGrid(grid):
         result = ""
         for i in range(len(grid)):
@@ -147,48 +174,39 @@ def turn(grid,neighboursGrid):
             result += "\n"
         print(result)
 
-    def play(grid, neighboursGrid):
-        # rules:
-        # je suis vivant et jai 2 ou 3 voisin ssi je vi encore
-        # je suis mort alors je revis si jai exactement 3 voisins
+    # apply game's rules:
+        # if I'm dead, I must to have specific 3 neighbors to reborn
+        # if I'm alive, I must to have 2 or 3 neighbors to be alive on the next turn
+    def play(grid, neighborsGrid):
         for i in range(len(grid)):
             for j in range(len(grid[i])):
-                if (grid[i][j] == 0):  # cellule (i,j) morte
-                    if (neighboursGrid[i][j] == 3):  # et possede 3 voisins
-                        grid[i][j] = 1  # RESURECTION
-                else:  # cellule (i,j) vivante
-                    if (neighboursGrid[i][j] == 2):  # 2 voisins
-                        grid[i][j] = 1
-                    elif (neighboursGrid[i][j] == 3):  # 3 voisins
-                        grid[i][j] = 1
+                if (grid[i][j] == 0):  # dead cell (i,j)
+                    if (neighborsGrid[i][j] == 3):  # have 3 neighbors
+                        grid[i][j] = 1  # REBORN !!
+                else:  # alive cell (i,j)
+                    if (neighborsGrid[i][j] == 2):  # have 2 neighbors
+                        grid[i][j] = 1 # still alive
+                    elif (neighborsGrid[i][j] == 3):  # have 3 neighbors
+                        grid[i][j] = 1 # still alive
                     else:  # et possede pas 2 ou 3 voisins
-                        grid[i][j] = 0  # MORT
-
-
+                        grid[i][j] = 0  # dead
 
     printGrid(grid)
-    play(grid, neighboursGrid)
-    neighboursGrid = createNeighborsGrid(grid)
-    time.sleep(0.5)
+    play(grid, neighborsGrid)
+    return createNeighborsGrid(grid)
+
+print("You have to give 3 arguments to the main function: height, width and list of list of 2 integer (coordinales of the alives cells)")
+print("for example use the function: ")
+print("     main(5,5,[[1,2],[3,2],[2,1],[2,3],[1,1]])")
+print("I add below some interesting forms from wikipedia")
+
+# main(5,5,[[1,2],[3,2],[2,1],[2,3],[1,1]])
+# main(4,4,[[1,1],[1,2],[2,1],[2,2]]) block imutable
+# main(5,6,[[1,2],[1,3],[3,2],[3,3],[2,1],[2,4]]) beehive imutable
+# main(5,5,[[1,2],[3,2],[2,1],[2,3],[1,1]]) boat imutable
+# main(5,5,[[1,2],[3,2],[2,1],[2,3]]) tub imutable
+# main(5,5,[[2,1],[2,2],[2,3]]) blinker oscilator
+# main(1,50,[[0,1],[0,2],[0,3]]) line
 
 
-
-#[[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0]]
-
-#01000
-#01000
-#01000
-
-#[[2,1,2,0,0],[3,2,3,0,0],[2,1,2,0,0]]
-
-#21200
-#32300
-#21200
-
-#[[0,0,0,0,0],[1,1,1,0,0],[0,0,0,0,0]]
-
-#00000
-#11100
-#00000
-
-main()
+# main(1,50,[[0,0],[0,1],[0,2]])
